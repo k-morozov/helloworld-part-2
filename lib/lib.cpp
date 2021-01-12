@@ -2,7 +2,6 @@
 
 #include "config/version.h"
 #include <cassert>
-#include <iostream>
 
 namespace lib {
 
@@ -32,7 +31,7 @@ address_type parse_address(const std::string& str) {
             std::cerr << ex.what() << std::endl;
             value = 0;
         }
-//        assert(value < 256);
+        assert(value < 256);
         address[count] = static_cast<unsigned short>(value);
 
         count++;
@@ -43,9 +42,15 @@ address_type parse_address(const std::string& str) {
         address[count] = static_cast<unsigned short>(std::stoi(str.substr(start, stop - start)));
         count++;
     }
-//    assert(count == SIZE_IP);
+    assert(count == SIZE_IP);
 
     return address;
 }
 
 }
+
+std::ostream& operator<<(std::ostream& stream, const lib::address_type& ip) {
+    stream << ip[0] << "." << ip[1] << "." << ip[2] << "." << ip[3];
+    return stream;
+}
+

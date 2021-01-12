@@ -1,10 +1,13 @@
 #pragma once
 
 #include <array>
+#include <iostream>
 
 namespace lib {
     constexpr auto SIZE_IP = 4;
     using address_type = std::array<unsigned short, SIZE_IP>;
+
+
 
     int version();
 
@@ -13,3 +16,4 @@ namespace lib {
     address_type parse_address(const std::string&);
 }
 
+std::ostream& operator<<(std::ostream& stream, const lib::address_type& ip);
