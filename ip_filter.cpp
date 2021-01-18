@@ -6,7 +6,6 @@
 int main(int, char const *[]) {
     try {
         std::vector<lib::address_type> ip_pool;
-
         for(std::string line; std::getline(std::cin, line);) {
             ip_pool.emplace_back(lib::get_address(line));
         }
@@ -15,6 +14,12 @@ int main(int, char const *[]) {
         std::sort(ip_pool.begin(), ip_pool.end(), std::greater<lib::address_type>());
 
         for(const auto& ip : ip_pool) {
+            std::cout << ip << std::endl;
+        }
+        lib::Filter<unsigned short> filter(ip_pool);
+
+        auto ip = filter.get(1);
+        for(const auto& ip : ip) {
             std::cout << ip << std::endl;
         }
 
