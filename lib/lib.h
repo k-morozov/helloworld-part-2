@@ -3,53 +3,90 @@
 #include <array>
 #include <vector>
 #include <iostream>
+#include <map>
+#include <functional>
 
 namespace lib {
-    constexpr auto SIZE_IP = 4;
-    using address_type = std::array<unsigned short, SIZE_IP>;
+    using ip_type = int;
 
-    int version();
+    using ip_address = std::tuple<ip_type, ip_type, ip_type, ip_type>;
 
-    address_type get_address(const std::string&);
+    // **********************************************************************************************************
 
-    address_type parse_address(const std::string&);
+    template <typename... Types, size_t... Position>
+    constexpr auto CreateTupleFromVectorHelper(const std::vector<std::string>& v, std::index_sequence<Position...>) {
+        return std::make_tuple(atoi(v[Position].c_str()) ...);
+    }
 
-    std::vector<address_type> filter(unsigned short);
+    template <typename>
+    struct CreateTupleFromVector;
 
-    template <typename T>
-    class Filter {
-    public:
-        Filter(const std::vector<lib::address_type>& ip_pool) : ip_pool(ip_pool) {}
-
-        template <typename Head, typename ...Type>
-        std::vector<address_type> get(Head num, Type ... nums) {
-            std::vector<address_type> result;
-            for(const auto& address : ip_pool) {
-                if (filter(address, num, nums...)) {
-                    result.push_back(address);
-                }
-            }
-            return result;
-
+    template <typename... Types>
+    struct CreateTupleFromVector<std::tuple<Types...>> {
+        static auto create(const std::vector<std::string>& v) {
+            return CreateTupleFromVectorHelper(v, std::make_index_sequence<sizeof... (Types)>());
         }
-    private:
-        std::vector<lib::address_type> ip_pool;
+    };
 
-        template <typename Head, typename ...Type>
-        bool filter(const address_type& address, Head num, Type ... nums) {
+    // **********************************************************************************************************
 
+    template <size_t I>
+    struct CompareTuples {
+        template <typename... Types1, typename... Types2>
+        static constexpr bool CompareAll(const std::tuple<Types1...>& data, const std::tuple<Types2...>& pattern) {
+            if (std::get<I - 1>(data) != std::get<I - 1>(pattern))
+                return false;
+
+            return CompareTuples<I - 1>::CompareAll(data, pattern);
+        }
+    };
+
+    template <>
+    struct CompareTuples<0> {
+        template <typename... Types1, typename... Types2>
+        static constexpr bool CompareAll(const std::tuple<Types1...>&, const std::tuple<Types2...>&) {
             return true;
         }
+    };
 
-        template <typename Type>
-        bool filter(const address_type& address, Type num) {
-            return std::find(address.begin(), address.end(),
-                             num) != address.end();
+    // **********************************************************************************************************
+
+    template <typename TupType, size_t... I>
+    void PrintTuple(std::ostream& ostream, const TupType& tuple, std::index_sequence<I...>) {
+        (..., (ostream << std::string(I == 0 ? "" : ".") << std::get<I>(tuple)));
+    }
+
+    template <typename... Types>
+    void PrintTuple(std::ostream& ostream, const std::tuple<Types...>& tuple) {
+        PrintTuple(ostream, tuple, std::make_index_sequence<sizeof...(Types)>());
+    }
+
+    // **********************************************************************************************************
+
+    class IPAddressPool {
+    public:
+        void insert(const ip_address& address);
+
+        void insert(const std::string&);
+
+        template <typename... Args>
+        void print_all(std::ostream& ostream, Args&&... args) {
+            auto filterAll = [&](const auto& address) {
+                return CompareTuples<sizeof...(args)>::CompareAll(address, std::make_tuple(args...));
+            };
+            print(ostream, filterAll);
         }
+
+    private:
+        std::map<ip_address, int, std::greater<ip_address>> ip_pool;
+
+        std::vector<std::string> split(const std::string &str, char d);
+
+        void print(std::ostream& ostream, std::function<bool(ip_address)>);
 
     };
 
+// ************************************************************************
 
+    int version();
 }
-
-std::ostream& operator<<(std::ostream& stream, const lib::address_type& ip);

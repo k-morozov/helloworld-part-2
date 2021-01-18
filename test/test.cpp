@@ -5,12 +5,17 @@ TEST(Version, ValidVersion) {
     ASSERT_GT(lib::version(), 0);
 }
 
-TEST(ParserAddress, GetAddressFromSimpleStr) {
-    lib::address_type address{127, 0, 0, 1};
-    ASSERT_TRUE(address == lib::parse_address("127.0.0.1"));
+TEST(CreateIP, SimpleIP_1) {
+    auto addr = lib::CreateTupleFromVector<lib::ip_address>::create({"127", "0", "0", "1"});
+    ASSERT_TRUE(addr == std::make_tuple(127, 0, 0, 1));
 }
 
-TEST(ParserAddress, GetFullAddressFromStr) {
-    lib::address_type address{127, 0, 0, 1};
-    ASSERT_TRUE(address == lib::get_address("127.0.0.1\t asd \t\n"));
+TEST(CreateIP, SimpleIP_2) {
+    auto addr = lib::CreateTupleFromVector<lib::ip_address>::create({"0", "0", "0", "1"});
+    ASSERT_TRUE(addr == std::make_tuple(0, 0, 0, 1));
+}
+
+TEST(CreateIP, SimpleIP_3) {
+    auto addr = lib::CreateTupleFromVector<lib::ip_address>::create({"255", "255", "255", "255"});
+    ASSERT_TRUE(addr == std::make_tuple(255, 255, 255, 255));
 }

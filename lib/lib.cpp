@@ -9,48 +9,45 @@ int version() {
     return PROJECT_VERSION_PATCH;
 }
 
-address_type get_address(const std::string& str) {
-    std::string::size_type end = str.find_first_of('\t');
-
-    return parse_address(str.substr(0, end));
+void IPAddressPool::insert(const std::string& address_str) {
+    auto address = split(address_str, '.');
+    auto address_tuple = CreateTupleFromVector<ip_address>::create(address);
+    insert(address_tuple);
 }
 
-address_type parse_address(const std::string& str) {
-    address_type address;
-    std::size_t count = 0;
+void IPAddressPool::insert(const ip_address& address) {
+    ++ip_pool[address];
+}
+
+std::vector<std::string> IPAddressPool::split(const std::string &str, char d) {
+    std::vector<std::string> r;
 
     std::string::size_type start = 0;
-    std::string::size_type stop = str.find_first_of('.');
+    auto stop = str.find_first_of(d);
+    while(stop != std::string::npos)
+    {
+        r.push_back(str.substr(start, stop - start));
 
-    while(stop != std::string::npos && count < SIZE_IP) {
-        int value = 0;
-        try {
-            value = std::stoi(str.substr(start, stop - start));
-        }  catch (std::exception &ex) {
-            std::cerr << __PRETTY_FUNCTION__ << ": " << value << std::endl;
-            std::cerr << ex.what() << std::endl;
-            value = 0;
-        }
-        assert(value < 256);
-        address[count] = static_cast<unsigned short>(value);
-
-        count++;
         start = stop + 1;
-        stop = str.find_first_of('.', start);
+        stop = str.find_first_of(d, start);
     }
-    if (stop == std::string::npos && count < SIZE_IP) {
-        address[count] = static_cast<unsigned short>(std::stoi(str.substr(start, stop - start)));
-        count++;
-    }
-    assert(count == SIZE_IP);
 
-    return address;
+    r.push_back(str.substr(start));
+
+    return r;
 }
 
-}
+void IPAddressPool::print(std::ostream& ostream, std::function<bool(ip_address)> filter) {
+    for(const auto& value : ip_pool) {
+        if(!filter(value.first)) {
+            continue;
+        }
 
-std::ostream& operator<<(std::ostream& stream, const lib::address_type& ip) {
-    stream << ip[0] << "." << ip[1] << "." << ip[2] << "." << ip[3];
-    return stream;
+        for(int i = 0; i < value.second; i++) {
+            PrintTuple(ostream, value.first);
+            ostream << std::endl;
+        }
+    }
+}
 }
 

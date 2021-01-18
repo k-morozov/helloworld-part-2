@@ -5,22 +5,9 @@
 
 int main(int, char const *[]) {
     try {
-        std::vector<lib::address_type> ip_pool;
+        lib::IPAddressPool pool;
         for(std::string line; std::getline(std::cin, line);) {
-            ip_pool.emplace_back(lib::get_address(line));
-        }
-
-        // TODO reverse lexicographically sort
-        std::sort(ip_pool.begin(), ip_pool.end(), std::greater<lib::address_type>());
-
-        for(const auto& ip : ip_pool) {
-            std::cout << ip << std::endl;
-        }
-        lib::Filter<unsigned short> filter(ip_pool);
-
-        auto ip = filter.get(1);
-        for(const auto& ip : ip) {
-            std::cout << ip << std::endl;
+            pool.insert(line);
         }
 
         // 222.173.235.246
@@ -30,26 +17,20 @@ int main(int, char const *[]) {
         // 1.70.44.170
         // 1.29.168.152
         // 1.1.234.8
-
-        // TODO filter by first byte and output
-        // ip = filter(1)
+        pool.print_all(std::cout);
 
         // 1.231.69.33
         // 1.87.203.225
         // 1.70.44.170
         // 1.29.168.152
         // 1.1.234.8
-
-        // TODO filter by first and second bytes and output
-        // ip = filter(46, 70)
+        pool.print_all(std::cout, 1);
 
         // 46.70.225.39
         // 46.70.147.26
         // 46.70.113.73
         // 46.70.29.76
-
-        // TODO filter by any byte and output
-        // ip = filter_any(46)
+        pool.print_all(std::cout, 46, 70);
 
         // 186.204.34.46
         // 186.46.222.194
@@ -85,6 +66,8 @@ int main(int, char const *[]) {
         // 46.49.43.85
         // 39.46.86.85
         // 5.189.203.46
+
+//        pool.print_any(std::cout, 46);
     }
     catch(const std::exception &e)
     {

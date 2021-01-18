@@ -21,7 +21,7 @@ add_library(${APP_LIB} lib/lib.cpp)
 add_executable(${APP_TEST} test/test.cpp)
 
 set_target_properties(${APP_NAME} ${APP_LIB} ${APP_TEST} PROPERTIES
-    CXX_STANDARD 14
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
 
