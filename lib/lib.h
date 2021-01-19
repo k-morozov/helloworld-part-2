@@ -30,29 +30,55 @@ namespace lib {
 
     // **********************************************************************************************************
 
+    extern bool Compare(ip_type lhs, ip_type rhs);
+
+    template <typename Type, typename ... Types>
+    bool FindInTuple(const std::tuple<Types ...>& data, const Type& pattern) {
+        auto finder = [&pattern](auto&& ... args) {
+            return (Compare(pattern, decltype(args)(args)) || ...);
+        };
+
+        return std::apply(finder, data);
+    }
+
     template <size_t I>
     struct CompareTuples {
-        template <typename... Types1, typename... Types2>
-        static constexpr bool CompareAll(const std::tuple<Types1...>& data, const std::tuple<Types2...>& pattern) {
-            if (std::get<I - 1>(data) != std::get<I - 1>(pattern))
+        template <typename... TypeData, typename... TypePattern>
+        static constexpr bool CompareAll(const std::tuple<TypeData...>& data, const std::tuple<TypePattern...>& pattern) {
+            if (std::get<I - 1>(data) != std::get<I - 1>(pattern)) {
                 return false;
-
+            }
+                
             return CompareTuples<I - 1>::CompareAll(data, pattern);
+        }
+
+        template <typename ... TypeData, typename ... TypePattern>
+        static constexpr bool CompareAny(const std::tuple<TypeData ...>& data, const std::tuple<TypePattern ...>& pattern) {
+            if (FindInTuple(data, std::get<I-1>(pattern))) {
+                return true;
+            }
+
+            return CompareTuples<I-1>::CompareAny(data, pattern);
         }
     };
 
     template <>
     struct CompareTuples<0> {
-        template <typename... Types1, typename... Types2>
-        static constexpr bool CompareAll(const std::tuple<Types1...>&, const std::tuple<Types2...>&) {
+        template <typename ... TypeData, typename ... TypePattern>
+        static constexpr bool CompareAll(const std::tuple<TypeData ...>&, const std::tuple<TypePattern ...>&) {
             return true;
+        }
+
+        template <typename ... TypeData, typename ... TypePattern>
+        static constexpr bool CompareAny(const std::tuple<TypeData ...>&, const std::tuple<TypePattern ...>&) {
+            return false;
         }
     };
 
     // **********************************************************************************************************
 
-    template <typename TupType, size_t... I>
-    void PrintTuple(std::ostream& ostream, const TupType& tuple, std::index_sequence<I...>) {
+    template <typename Type, size_t... I>
+    void PrintTuple(std::ostream& ostream, const Type& tuple, std::index_sequence<I...>) {
         (..., (ostream << std::string(I == 0 ? "" : ".") << std::get<I>(tuple)));
     }
 
@@ -75,6 +101,14 @@ namespace lib {
                 return CompareTuples<sizeof...(args)>::CompareAll(address, std::make_tuple(args...));
             };
             print(ostream, filterAll);
+        }
+
+        template <typename... Args>
+        void print_any(std::ostream& ostream, Args&&... args) {
+            auto filterAny = [&](const auto& address) {
+                return CompareTuples<sizeof...(args)>::CompareAny(address, std::make_tuple(args...));
+            };
+            print(ostream, filterAny);
         }
 
     private:

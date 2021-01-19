@@ -9,6 +9,10 @@ int version() {
     return PROJECT_VERSION_PATCH;
 }
 
+bool Compare(ip_type lhs, ip_type rhs) {
+    return lhs == rhs;
+}
+
 void IPAddressPool::insert(const std::string& address_str) {
     auto address = split(address_str, '.');
     auto address_tuple = CreateTupleFromVector<ip_address>::create(address);
