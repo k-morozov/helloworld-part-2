@@ -14,7 +14,7 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - BUILD_DIR=build
-        - PROJECT_NAME=AppChat
+        - APP_NAME=helloworld-part-2
       before_install:
         - eval "${MATRIX_EVAL}"
       before_script:
@@ -26,10 +26,13 @@ matrix:
         - make -j8
         - sudo make install
         - sudo ldconfig
-        - echo "finish prepare"
         - sudo apt-get update -qq
+        - popd
+      cache:
+        directories:
+          - googletest/
       script:
-        - mkdir -p build && cd build
+        - mkdir -p ${BUILD_DIR}  && cd ${BUILD_DIR} 
         - cmake ..
         - cmake --build .
         - cmake --build . --target test
@@ -39,5 +42,5 @@ matrix:
         provider: script
         skip_cleanup: true
         script:
-                - curl -T helloworld-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb -uk-morozov:$BINTRAY_API_KEY "https://api.bintray.com/content/k-morozov/OTUS/helloworld/$TRAVIS_BUILD_NUMBER/helloworld-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb;deb_distribution=trusty;deb_component=main;deb_architecture=amd64;publish=1"
+          - curl -T helloworld-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb -uk-morozov:$BINTRAY_API_KEY "https://api.bintray.com/content/k-morozov/OTUS/helloworld/$TRAVIS_BUILD_NUMBER/${APP_NAME}-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb;deb_distribution=trusty;deb_component=main;deb_architecture=amd64;publish=1"
 
